@@ -8,13 +8,25 @@
     <meta name="format-detection" content="telephone=no">
     <title>微信年度报告 - JunJovec_ & JunLovey_</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/special-page5.css">
     <!-- 引入Animate.css用于文字动画 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <!-- 引入Swiper.js用于页面滑动 -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <!-- 移动设备重定向脚本 -->
+    <script src="js/mobile-redirect.js"></script>
 </head>
 <body>
     <div class="container">
+        <div class="page-counter">
+            <span id="current-page">1</span>/<span id="total-pages">8</span>
+        </div>
+        <div class="countdown-timer">
+            <div class="timer-bar">
+                <div id="timer-progress"></div>
+            </div>
+            <span id="timer-text">15</span>
+        </div>
         <div class="swiper-container">
             <div class="swiper-wrapper">
                 <!-- 第一页：欢迎页 -->
@@ -30,14 +42,21 @@
                                 <p class="nickname animate__animated animate__fadeIn animate__delay-1s">JunLovey_</p>
                             </div>
                         </div>
+                        <h1 class="title animate__animated animate__fadeIn">微信年度报告</h1>
+                        <h2 class="subtitle animate__animated animate__fadeIn animate__delay-1s">JunJovec_ & JunLovey_</h2>
+                        <p class="description animate__animated animate__fadeIn animate__delay-2s">我们的微信旅程</p>
                         <div class="welcome-text">
                             <h1 class="animate__animated animate__fadeIn animate__delay-2s">Hello World!</h1>
-                            <p class="animate__animated animate__fadeIn animate__delay-3s">时光荏苒，转眼间我们又走过了一年。</p>
+                            <p class="animate__animated animate__fadeIn animate__delay-3s">时光荏苠，转眼间我们又走过了一年。</p>
                             <p class="animate__animated animate__fadeIn animate__delay-4s">在过去的365天里，从深夜的长谈到清晨的祝福，从好友间的调侃到工作中的忙碌……</p>
                             <p class="animate__animated animate__fadeIn animate__delay-5s">这些聊天记录，是属于你的独家记忆。</p>
                             <p class="animate__animated animate__fadeIn animate__delay-6s">打开报告，开启你的专属年度记忆吧！</p>
                         </div>
-                        <button class="next-btn animate__animated animate__pulse animate__infinite">进入报告</button>
+                        <button class="next-btn animate__animated animate__pulse animate__infinite">开始浏览</button>
+                        <div class="auto-slide-control animate__animated animate__fadeIn animate__delay-3s">
+                            <button id="toggle-auto-slide" class="control-btn">暂停自动播放</button>
+                            <span class="auto-slide-info">每15秒自动翻页</span>
+                        </div>
                     </div>
                 </div>
 
@@ -142,7 +161,7 @@
 
                 <!-- 第五页：聊天时段分析 -->
                 <div class="swiper-slide page page-5">
-                    <div class="content">
+                    <div class="content page5-content">
                         <div class="time-chart-container animate__animated">
                             <h2>聊天时段分析</h2>
                             <img src="images/img_5.jpg" alt="聊天时段折线图" class="full-width-img">
@@ -340,7 +359,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js"></script>
     <!-- 自定义JS -->
     <script src="js/data.js"></script>
+    <script src="js/init.js"></script>
     <script src="js/main.js"></script>
     <script src="js/mobile-fix.js"></script>
+    <script src="js/page5-fix.js"></script>
+    <script src="js/fallback.js"></script>
 </body>
 </html>
