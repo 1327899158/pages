@@ -29,19 +29,11 @@ body {
     width: 100%;
     height: 100vh;
     overflow: hidden;
-    position: relative;
 }
 
 .swiper-container {
     width: 100%;
     height: 100%;
-    position: relative;
-}
-
-.swiper-wrapper {
-    width: 100%;
-    height: 100%;
-    position: relative;
 }
 
 .page {
@@ -50,34 +42,27 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; /* 改为从顶部开始布局 */
     padding: 20px;
     background-size: cover;
     background-position: center;
-    overflow-y: auto;
-    position: absolute;
-    top: 0;
-    left: 0;
-    transition: opacity 0.5s ease;
-    opacity: 0;
-    z-index: 0;
-}
-
-.page.active {
-    opacity: 1;
-    z-index: 1;
+    overflow-y: auto; /* 保持可滚动 */
+    position: relative;
+    padding-top: 60px; /* 为顶部留出空间 */
+    padding-bottom: 60px; /* 为底部留出空间 */
 }
 
 .content {
     width: 100%;
     max-width: 500px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; /* 从顶部开始布局 */
     text-align: center;
+    overflow-y: auto; /* 内容可滚动 */
 }
 
 /* 按钮样式 */
@@ -98,6 +83,94 @@ body {
     touch-action: manipulation; /* 优化触摸行为 */
     position: relative; /* 为伪元素做准备 */
     z-index: 1; /* 确保按钮始终在上层 */
+}
+
+/* 页面计数器样式 */
+.page-counter {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    z-index: 100;
+}
+
+/* 倒计时器样式 */
+.countdown-timer {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 60px;
+}
+
+.timer-bar {
+    width: 100%;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin-bottom: 5px;
+    overflow: hidden;
+}
+
+#timer-progress {
+    height: 100%;
+    background-color: #07C160;
+    width: 100%;
+    transition: width 1s linear;
+}
+
+#timer-text {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* 自动翻页控制样式 */
+.auto-slide-control {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 5px;
+}
+
+.control-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.control-btn.paused {
+    background-color: #ffecb3;
+    color: #ff6f00;
+}
+
+.auto-slide-info {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
 }
 
 .next-btn:hover, .restart-btn:hover {

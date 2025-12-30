@@ -1,85 +1,292 @@
-// 全局变量
-let currentPage = 0;
-let totalPages = 8; // 总页数
+// 自动翻页定时器
+let autoSlideTimer = null;
+let countdownTimer = null;
+let autoSlideEnabled = true;
+const autoSlideInterval = 15000; // 15秒
+let timeLeft = autoSlideInterval / 1000; // 剩余时间（秒）
+let swiper = null; // 全局Swiper实例
 
-// 等待DOM加载完成
+// 页面加载完成后立即执行
 document.addEventListener('DOMContentLoaded', function() {
-    // 获取所有页面和按钮
-    const pages = document.querySelectorAll('.swiper-slide');
-    const nextButtons = document.querySelectorAll('.next-btn');
-    const restartButton = document.querySelector('.restart-btn');
+    console.log('页面加载完成，准备启动自动翻页');
+    // 初始化倒计时器显示
+    updateTimerDisplay();
     
-    // 初始化显示第一页
-    showPage(0);
+    // 确保在页面加载后立即启动自动翻页
+    // 等待所有内容加载完成
+    window.addEventListener('load', function() {
+        console.log('页面完全加载完成，启动自动翻页');
+        // 等待一小段时间再启动，确保所有内容都已经渲染完成
+        setTimeout(function() {
+            startAutoSlide();
+        }, 2000);
+    });
+    // 初始化Swiper
+    swiper = new Swiper('.swiper-container', {
+        direction: 'vertical',
+        slidesPerView: 1,
+        spaceBetween: 0,
+        mousewheel: false,
+        keyboard: false,
+        allowTouchMove: false, // 禁止滑动，只能通过按钮翻页
+        speed: 800,
+        effect: 'fade',
+        fadeEffect: {
+            crossFade: true
+        },
+        touchRatio: 0, // 禁用触摸滑动
+        simulateTouch: false, // 禁用模拟触摸
+        preventInteractionOnTransition: true, // 过渡期间防止交互
+        autoHeight: true, // 自动高度
+        watchOverflow: true, // 监视溢出
+        on: {
+            init: function() {
+                // 初始化时触发动画
+                animateSlide(0);
+                // 启动自动翻页
+                startAutoSlide();
+                // 更新页面计数器 - 使用安全的方式获取幻灯片数量
+                const slidesCount = document.querySelectorAll('.swiper-slide').length;
+                updatePageCounter(1, slidesCount);
+            },
+            slideChange: function() {
+                // 当页面切换时，触发动画
+                const currentIndex = this.activeIndex;
+                animateSlide(currentIndex);
+                // 重置自动翻页定时器
+                resetAutoSlideTimer();
+                // 更新页面计数器 - 使用安全的方式获取幻灯片数量
+                const slidesCount = document.querySelectorAll('.swiper-slide').length;
+                updatePageCounter(currentIndex + 1, slidesCount);
+            }
+        }
+    });
     
-    // 为每个下一页按钮添加事件
-    nextButtons.forEach(function(button) {
-        // 绑定多种事件以确保兼容性
-        ['click', 'touchstart', 'touchend', 'mousedown', 'mouseup'].forEach(function(eventType) {
-            button.addEventListener(eventType, function(e) {
-                e.preventDefault(); // 阻止默认行为
-                nextPage(); // 调用翻到下一页的函数
-                return false; // 阻止事件冒泡
-            });
+    // 绑定按钮事件 - 同时支持点击和触摸事件
+    document.querySelectorAll('.next-btn').forEach(function(btn, index) {
+        // 点击事件
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            swiper.slideNext();
+            // 重置自动翻页定时器
+            resetAutoSlideTimer();
+        });
+        
+        // 触摸事件
+        btn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            swiper.slideNext();
+            // 重置自动翻页定时器
+            resetAutoSlideTimer();
         });
     });
     
-    // 为重新开始按钮添加事件（如果存在）
-    if (restartButton) {
-        ['click', 'touchstart', 'touchend', 'mousedown', 'mouseup'].forEach(function(eventType) {
-            restartButton.addEventListener(eventType, function(e) {
-                e.preventDefault();
-                goToPage(0); // 返回第一页
-                return false;
-            });
+    // 重新开始按钮
+    const restartBtn = document.querySelector('.restart-btn');
+    if (restartBtn) {
+        // 点击事件
+        restartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            swiper.slideTo(0);
+            // 重置自动翻页定时器
+            resetAutoSlideTimer();
         });
+        
+        // 触摸事件
+        restartBtn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            swiper.slideTo(0);
+            // 重置自动翻页定时器
+            resetAutoSlideTimer();
+        });
+    }
+    
+    // 自动翻页功能 - 完全重写
+    function startAutoSlide() {
+        // 先清除现有定时器
+        stopAutoSlide();
+        
+        if (!autoSlideEnabled) {
+            console.log('自动翻页已禁用');
+            return;
+        }
+        
+        console.log('启动自动翻页');
+        
+        // 重置倒计时
+        timeLeft = autoSlideInterval / 1000;
+        updateTimerDisplay();
+        
+        // 启动倒计时更新
+        countdownTimer = setInterval(function() {
+            timeLeft -= 1;
+            updateTimerDisplay();
+            
+            // 当倒计时到零时自动翻页
+            if (timeLeft <= 0) {
+                // 安全地获取当前页面索引
+                const slides = document.querySelectorAll('.swiper-slide');
+                const currentIndex = getCurrentSlideIndex();
+                const totalSlides = slides.length;
+                
+                if (currentIndex >= totalSlides - 1) {
+                    // 如果是最后一页，返回第一页
+                    if (swiper && typeof swiper.slideTo === 'function') {
+                        swiper.slideTo(0);
+                    } else {
+                        // 备用方案：手动切换页面
+                        manualSlideChange(0);
+                    }
+                } else {
+                    // 切换到下一页
+                    if (swiper && typeof swiper.slideNext === 'function') {
+                        swiper.slideNext();
+                    } else {
+                        // 备用方案：手动切换页面
+                        manualSlideChange(currentIndex + 1);
+                    }
+                }
+                
+                // 重置倒计时
+                timeLeft = autoSlideInterval / 1000;
+                updateTimerDisplay();
+            }
+        }, 1000);
+    }
+    
+    // 获取当前幻灯片索引
+    function getCurrentSlideIndex() {
+        const slides = document.querySelectorAll('.swiper-slide');
+        for (let i = 0; i < slides.length; i++) {
+            // 检查哪个幻灯片是可见的
+            const style = window.getComputedStyle(slides[i]);
+            if (style.display !== 'none' && style.opacity !== '0') {
+                return i;
+            }
+        }
+        return 0; // 默认返回第一页
+    }
+    
+    // 手动切换页面（当swiper不可用时的备用方案）
+    function manualSlideChange(targetIndex) {
+        const slides = document.querySelectorAll('.swiper-slide');
+        if (!slides || targetIndex >= slides.length) return;
+        
+        // 隐藏所有幻灯片
+        slides.forEach(slide => slide.style.display = 'none');
+        
+        // 显示目标幻灯片
+        slides[targetIndex].style.display = 'flex';
+        
+        // 触发动画
+        animateSlide(targetIndex);
+        
+        // 更新页面计数器
+        updatePageCounter(targetIndex + 1, slides.length);
     }
     
     // 页面显示函数
     function showPage(index) {
-        // 隐藏所有页面
-        pages.forEach(function(page) {
-            page.classList.remove('active');
+        const slides = document.querySelectorAll('.swiper-slide');
+        if (!slides || index >= slides.length) return;
+        
+        // 隐藏所有幻灯片
+        slides.forEach(slide => slide.style.display = 'none');
+        
+        // 显示目标幻灯片
+        slides[index].style.display = 'flex';
+        
+        // 触发动画
+        animateSlide(index);
+        
+        // 更新页面计数器
+        updatePageCounter(index + 1, slides.length);
+        
+        // 触发自定义页面切换事件
+        const slideChangeEvent = new CustomEvent('slideChange', {
+            detail: { index: index }
         });
-        
-        // 显示当前页面
-        if (pages[index]) {
-            pages[index].classList.add('active');
-            // 触发动画
-            animateSlide(index);
-        }
-        
-        // 更新当前页码
-        currentPage = index;
-        
-        // 打印调试信息
-        console.log('切换到页面:', index);
+        document.dispatchEvent(slideChangeEvent);
     }
     
-    // 下一页函数
-    function nextPage() {
-        if (currentPage < totalPages - 1) {
-            goToPage(currentPage + 1);
+    // 停止自动翻页
+    function stopAutoSlide() {
+        if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+        }
+        
+        if (autoSlideTimer) {
+            clearTimeout(autoSlideTimer);
+            autoSlideTimer = null;
         }
     }
     
-    // 跳转到指定页面
-    function goToPage(index) {
-        if (index >= 0 && index < totalPages) {
-            showPage(index);
+    // 更新倒计时器显示
+    function updateTimerDisplay() {
+        const timerText = document.getElementById('timer-text');
+        const timerProgress = document.getElementById('timer-progress');
+        
+        if (timerText && timerProgress) {
+            // 更新文本
+            timerText.textContent = timeLeft;
+            
+            // 更新进度条
+            const progressPercent = (timeLeft / (autoSlideInterval / 1000)) * 100;
+            timerProgress.style.width = progressPercent + '%';
         }
     }
     
-    // 添加键盘事件支持
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-            nextPage();
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-            if (currentPage > 0) {
-                goToPage(currentPage - 1);
+    // 重置自动翻页定时器
+    function resetAutoSlideTimer() {
+        // 重新启动自动翻页
+        startAutoSlide();
+    }
+    
+    // 页面计数器更新函数
+    function updatePageCounter(currentPage, totalPages) {
+        const currentPageElement = document.getElementById('current-page');
+        const totalPagesElement = document.getElementById('total-pages');
+        
+        if (currentPageElement && totalPagesElement) {
+            currentPageElement.textContent = currentPage;
+            totalPagesElement.textContent = totalPages;
+        }
+    }
+    
+    // 自动翻页控制按钮
+    const toggleAutoSlideBtn = document.getElementById('toggle-auto-slide');
+    if (toggleAutoSlideBtn) {
+        toggleAutoSlideBtn.addEventListener('click', function() {
+            autoSlideEnabled = !autoSlideEnabled;
+            
+            if (autoSlideEnabled) {
+                // 恢复自动翻页
+                this.textContent = '暂停自动播放';
+                this.classList.remove('paused');
+                startAutoSlide();
+                
+                // 显示倒计时器
+                document.querySelector('.countdown-timer').style.display = 'flex';
+            } else {
+                // 暂停自动翻页
+                this.textContent = '继续自动播放';
+                this.classList.add('paused');
+                
+                // 清除定时器
+                if (autoSlideTimer) {
+                    clearTimeout(autoSlideTimer);
+                }
+                
+                if (countdownTimer) {
+                    clearInterval(countdownTimer);
+                }
+                
+                // 隐藏倒计时器
+                document.querySelector('.countdown-timer').style.display = 'none';
             }
-        }
-    });
+        });
+    }
     
     // 创建消息对比图表
     createMessageComparisonChart();
@@ -88,7 +295,18 @@ document.addEventListener('DOMContentLoaded', function() {
 // 页面动画函数
 function animateSlide(index) {
     // 获取当前页面的所有需要动画的元素
-    const currentSlide = document.querySelectorAll('.swiper-slide')[index];
+    const slides = document.querySelectorAll('.swiper-slide');
+    if (!slides || index >= slides.length) {
+        console.error('无法找到幻灯片或索引超出范围:', index);
+        return;
+    }
+    
+    const currentSlide = slides[index];
+    if (!currentSlide) {
+        console.error('无法获取当前幻灯片:', index);
+        return;
+    }
+    
     const animatedElements = currentSlide.querySelectorAll('.animate__animated:not(.animate__infinite)');
     
     // 重置所有元素的动画
