@@ -12,7 +12,16 @@ document.addEventListener('DOMContentLoaded', function() {
         fadeEffect: {
             crossFade: true
         },
+        touchRatio: 0, // 禁用触摸滑动
+        simulateTouch: false, // 禁用模拟触摸
+        preventInteractionOnTransition: true, // 过渡期间防止交互
+        autoHeight: true, // 自动高度
+        watchOverflow: true, // 监视溢出
         on: {
+            init: function() {
+                // 初始化时触发动画
+                animateSlide(0);
+            },
             slideChange: function() {
                 // 当页面切换时，触发动画
                 animateSlide(swiper.activeIndex);
@@ -20,20 +29,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 初始化第一页动画
-    animateSlide(0);
-    
-    // 绑定按钮事件
+    // 绑定按钮事件 - 同时支持点击和触摸事件
     document.querySelectorAll('.next-btn').forEach(function(btn, index) {
-        btn.addEventListener('click', function() {
+        // 点击事件
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            swiper.slideNext();
+        });
+        
+        // 触摸事件
+        btn.addEventListener('touchend', function(e) {
+            e.preventDefault();
             swiper.slideNext();
         });
     });
     
     // 重新开始按钮
-    document.querySelector('.restart-btn').addEventListener('click', function() {
-        swiper.slideTo(0);
-    });
+    const restartBtn = document.querySelector('.restart-btn');
+    if (restartBtn) {
+        // 点击事件
+        restartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            swiper.slideTo(0);
+        });
+        
+        // 触摸事件
+        restartBtn.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            swiper.slideTo(0);
+        });
+    }
     
     // 创建消息对比图表
     createMessageComparisonChart();
