@@ -1,0 +1,70 @@
+/* 恢复按钮显示 */
+
+/* 重置所有可能影响按钮显示的样式 */
+.next-btn, .restart-btn {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    margin: 30px auto !important;
+    width: auto !important;
+    min-width: 200px !important;
+    padding: 15px 40px !important;
+    background-color: #07C160 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 30px !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    z-index: 9999 !important;
+    box-shadow: 0 4px 12px rgba(7, 193, 96, 0.3) !important;
+}
+
+/* 确保按钮在所有页面上都可见 */
+.swiper-slide .next-btn,
+.swiper-slide .restart-btn {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* 添加明显的视觉效果 */
+.next-btn, .restart-btn {
+    animation: button-pulse 2s infinite !important;
+}
+
+@keyframes button-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(7, 193, 96, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(7, 193, 96, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(7, 193, 96, 0);
+    }
+}
+
+/* 确保按钮文本可见 */
+.next-btn::after, .restart-btn::after {
+    content: attr(data-text);
+    display: block;
+    visibility: visible;
+    opacity: 1;
+}
+
+/* 移动设备特别处理 */
+@media (max-width: 768px) {
+    .next-btn, .restart-btn {
+        margin: 40px auto 60px auto !important;
+        padding: 18px 45px !important;
+        font-size: 22px !important;
+    }
+    
+    /* 确保内容区域留出足够空间给按钮 */
+    .content {
+        padding-bottom: 100px !important;
+    }
+}

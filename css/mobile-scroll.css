@@ -16,14 +16,17 @@
         padding-bottom: 80px !important;
     }
     
-    /* 固定底部按钮 */
+    /* 按钮样式修复 */
     .next-btn, .restart-btn {
-        position: fixed !important;
-        bottom: 20px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        z-index: 1000 !important;
+        position: relative !important;
+        display: block !important;
+        margin: 30px auto 50px auto !important;
         width: 200px !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 1000 !important;
+        background-color: #07C160 !important;
+        color: white !important;
     }
     
     /* 确保内容不被底部按钮遮挡 */
