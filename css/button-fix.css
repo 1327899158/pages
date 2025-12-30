@@ -1,0 +1,58 @@
+/* 专门用于修复移动设备上按钮点击问题的样式 */
+
+/* 增大按钮的可点击区域 */
+.next-btn, .restart-btn {
+    position: relative;
+    padding: 15px 40px; /* 增大内边距 */
+    margin: 30px auto; /* 增加上下间距 */
+    display: block; /* 确保按钮是块级元素 */
+    min-width: 200px; /* 设置最小宽度 */
+    font-size: 20px; /* 增大字体 */
+    z-index: 10; /* 确保按钮在最上层 */
+    -webkit-tap-highlight-color: rgba(7, 193, 96, 0.3); /* 添加轻微的触摸高亮 */
+}
+
+/* 添加一个更大的伪元素作为点击区域 */
+.next-btn::before, .restart-btn::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    z-index: -1;
+}
+
+/* 触摸状态样式 */
+.next-btn.touch-active, .restart-btn.touch-active,
+.next-btn:active, .restart-btn:active {
+    background-color: #06a050; /* 按下时颜色变深 */
+    transform: scale(0.98); /* 轻微缩小 */
+    box-shadow: 0 2px 8px rgba(7, 193, 96, 0.3); /* 减小阴影 */
+}
+
+/* 确保按钮在移动设备上有明显的视觉反馈 */
+@media (max-width: 768px) {
+    .next-btn, .restart-btn {
+        padding: 18px 45px; /* 在移动设备上进一步增大内边距 */
+        font-size: 22px; /* 在移动设备上增大字体 */
+        margin: 40px auto; /* 增加上下间距 */
+    }
+    
+    /* 添加脉冲动画，使按钮更加明显 */
+    @keyframes mobile-pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(7, 193, 96, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(7, 193, 96, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(7, 193, 96, 0);
+        }
+    }
+    
+    .next-btn, .restart-btn {
+        animation: mobile-pulse 2s infinite;
+    }
+}
