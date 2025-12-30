@@ -1,0 +1,131 @@
+/* 移动设备上的滚动优化 */
+
+/* 确保页面容器可滚动 */
+@media (max-width: 768px) {
+    .page {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100% !important;
+        padding-bottom: 100px !important; /* 为底部按钮留出空间 */
+    }
+    
+    .content {
+        overflow-y: visible !important;
+        height: auto !important;
+        padding-bottom: 80px !important;
+    }
+    
+    /* 固定底部按钮 */
+    .next-btn, .restart-btn {
+        position: fixed !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 1000 !important;
+        width: 200px !important;
+    }
+    
+    /* 确保内容不被底部按钮遮挡 */
+    .swiper-slide {
+        padding-bottom: 100px !important;
+    }
+    
+    /* 优化特定页面的布局 */
+    .stat-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+    
+    .stat-grid-item {
+        width: 30% !important;
+        margin: 5px !important;
+    }
+    
+    /* 减小图片大小 */
+    .full-width-img {
+        max-height: 200px !important;
+        object-fit: contain !important;
+    }
+    
+    /* 减小字体大小 */
+    h1 {
+        font-size: 24px !important;
+    }
+    
+    h2 {
+        font-size: 20px !important;
+    }
+    
+    h3 {
+        font-size: 18px !important;
+    }
+    
+    p {
+        font-size: 16px !important;
+    }
+    
+    .highlight {
+        font-size: 18px !important;
+    }
+    
+    .big-number {
+        font-size: 28px !important;
+    }
+    
+    /* 优化聊天气泡 */
+    .chat-bubble-container {
+        margin: 8px 0 !important;
+    }
+    
+    /* 添加滚动指示器 */
+    .scroll-indicator {
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        background-color: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: bounce 2s infinite;
+        z-index: 100;
+    }
+    
+    .scroll-indicator::after {
+        content: '';
+        width: 12px;
+        height: 12px;
+        border-right: 3px solid white;
+        border-bottom: 3px solid white;
+        transform: rotate(45deg) translateY(-4px);
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateX(-50%) translateY(0);
+        }
+        40% {
+            transform: translateX(-50%) translateY(-10px);
+        }
+        60% {
+            transform: translateX(-50%) translateY(-5px);
+        }
+    }
+    
+    /* 特别处理第五页 */
+    .page5-content {
+        padding-top: 0 !important;
+        height: auto !important;
+        overflow-y: auto !important;
+    }
+    
+    .special-moment {
+        margin: 10px 0 !important;
+        padding: 5px !important;
+    }
+}

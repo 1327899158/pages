@@ -1,0 +1,135 @@
+/* 针对特定页面的优化 */
+
+/* 第五页优化 */
+@media (max-width: 768px) {
+    /* 减小图表容器的高度 */
+    .page-5 .time-chart-container {
+        max-height: 180px;
+        margin-bottom: 5px;
+    }
+    
+    .page-5 .time-chart-container h2 {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    
+    .page-5 .time-chart-container img {
+        max-height: 120px;
+    }
+    
+    /* 减小时间分析部分的间距 */
+    .page-5 .time-analysis {
+        margin: 5px 0;
+    }
+    
+    .page-5 .time-analysis p {
+        margin: 3px 0;
+        font-size: 14px;
+    }
+    
+    /* 优化特殊时刻部分 */
+    .page-5 .special-moment {
+        margin: 8px 0;
+        padding: 5px;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .page-5 .special-moment h3 {
+        font-size: 16px;
+        margin-bottom: 3px;
+    }
+    
+    .page-5 .special-moment p {
+        margin: 2px 0;
+        font-size: 14px;
+    }
+    
+    .page-5 .chat-bubble-container {
+        margin: 5px 0;
+    }
+    
+    .page-5 .chat-bubble {
+        padding: 8px;
+    }
+    
+    .page-5 .chat-bubble p {
+        font-size: 14px;
+    }
+    
+    .page-5 .moment-caption {
+        font-size: 12px;
+        font-style: italic;
+        margin-top: 3px;
+    }
+}
+
+/* 第七页优化 */
+@media (max-width: 768px) {
+    .page-7 .word-stats {
+        flex-direction: column;
+    }
+    
+    .page-7 .word-item {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    .page-7 .word-example-group {
+        max-height: 150px;
+        overflow-y: auto;
+    }
+}
+
+/* 第四页优化 */
+@media (max-width: 768px) {
+    .page-4 .comparison-chart {
+        height: 200px !important;
+    }
+}
+
+/* 第三页优化 */
+@media (max-width: 768px) {
+    .page-3 .stats-container {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .page-3 .stat-item {
+        margin: 5px 0;
+    }
+}
+
+/* 通用优化 */
+@media (max-width: 768px) {
+    /* 减小所有页面的内边距 */
+    .page {
+        padding: 15px 10px;
+    }
+    
+    /* 减小内容容器的内边距 */
+    .content {
+        padding: 5px;
+    }
+    
+    /* 减小图片大小 */
+    img:not(.avatar):not(.avatar-small) {
+        max-height: 180px;
+        width: auto;
+    }
+    
+    /* 减小头像大小 */
+    .avatar {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .avatar-small {
+        width: 30px;
+        height: 30px;
+    }
+    
+    /* 优化标题和文本 */
+    h1, h2, h3, p {
+        margin: 5px 0;
+    }
+}
