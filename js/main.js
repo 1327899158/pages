@@ -1,64 +1,85 @@
+// 全局变量
+let currentPage = 0;
+let totalPages = 8; // 总页数
+
+// 等待DOM加载完成
 document.addEventListener('DOMContentLoaded', function() {
-    // 初始化Swiper
-    const swiper = new Swiper('.swiper-container', {
-        direction: 'vertical',
-        slidesPerView: 1,
-        spaceBetween: 0,
-        mousewheel: false,
-        keyboard: false,
-        allowTouchMove: false, // 禁止滑动，只能通过按钮翻页
-        speed: 800,
-        effect: 'fade',
-        fadeEffect: {
-            crossFade: true
-        },
-        touchRatio: 0, // 禁用触摸滑动
-        simulateTouch: false, // 禁用模拟触摸
-        preventInteractionOnTransition: true, // 过渡期间防止交互
-        autoHeight: true, // 自动高度
-        watchOverflow: true, // 监视溢出
-        on: {
-            init: function() {
-                // 初始化时触发动画
-                animateSlide(0);
-            },
-            slideChange: function() {
-                // 当页面切换时，触发动画
-                animateSlide(swiper.activeIndex);
+    // 获取所有页面和按钮
+    const pages = document.querySelectorAll('.swiper-slide');
+    const nextButtons = document.querySelectorAll('.next-btn');
+    const restartButton = document.querySelector('.restart-btn');
+    
+    // 初始化显示第一页
+    showPage(0);
+    
+    // 为每个下一页按钮添加事件
+    nextButtons.forEach(function(button) {
+        // 绑定多种事件以确保兼容性
+        ['click', 'touchstart', 'touchend', 'mousedown', 'mouseup'].forEach(function(eventType) {
+            button.addEventListener(eventType, function(e) {
+                e.preventDefault(); // 阻止默认行为
+                nextPage(); // 调用翻到下一页的函数
+                return false; // 阻止事件冒泡
+            });
+        });
+    });
+    
+    // 为重新开始按钮添加事件（如果存在）
+    if (restartButton) {
+        ['click', 'touchstart', 'touchend', 'mousedown', 'mouseup'].forEach(function(eventType) {
+            restartButton.addEventListener(eventType, function(e) {
+                e.preventDefault();
+                goToPage(0); // 返回第一页
+                return false;
+            });
+        });
+    }
+    
+    // 页面显示函数
+    function showPage(index) {
+        // 隐藏所有页面
+        pages.forEach(function(page) {
+            page.classList.remove('active');
+        });
+        
+        // 显示当前页面
+        if (pages[index]) {
+            pages[index].classList.add('active');
+            // 触发动画
+            animateSlide(index);
+        }
+        
+        // 更新当前页码
+        currentPage = index;
+        
+        // 打印调试信息
+        console.log('切换到页面:', index);
+    }
+    
+    // 下一页函数
+    function nextPage() {
+        if (currentPage < totalPages - 1) {
+            goToPage(currentPage + 1);
+        }
+    }
+    
+    // 跳转到指定页面
+    function goToPage(index) {
+        if (index >= 0 && index < totalPages) {
+            showPage(index);
+        }
+    }
+    
+    // 添加键盘事件支持
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+            nextPage();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            if (currentPage > 0) {
+                goToPage(currentPage - 1);
             }
         }
     });
-    
-    // 绑定按钮事件 - 同时支持点击和触摸事件
-    document.querySelectorAll('.next-btn').forEach(function(btn, index) {
-        // 点击事件
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            swiper.slideNext();
-        });
-        
-        // 触摸事件
-        btn.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            swiper.slideNext();
-        });
-    });
-    
-    // 重新开始按钮
-    const restartBtn = document.querySelector('.restart-btn');
-    if (restartBtn) {
-        // 点击事件
-        restartBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            swiper.slideTo(0);
-        });
-        
-        // 触摸事件
-        restartBtn.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            swiper.slideTo(0);
-        });
-    }
     
     // 创建消息对比图表
     createMessageComparisonChart();
