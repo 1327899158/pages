@@ -8,36 +8,24 @@ let swiper = null; // 全局Swiper实例
 
 // 页面加载完成后立即执行
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('页面加载完成，准备启动自动翻页');
-    // 初始化倒计时器显示
-    updateTimerDisplay();
-    
-    // 确保在页面加载后立即启动自动翻页
-    // 等待所有内容加载完成
-    window.addEventListener('load', function() {
-        console.log('页面完全加载完成，启动自动翻页');
-        // 等待一小段时间再启动，确保所有内容都已经渲染完成
-        setTimeout(function() {
-            startAutoSlide();
-        }, 2000);
-    });
-    // 初始化Swiper - 使用更简单的配置以提高兼容性
-    try {
-        console.log('开始初始化Swiper');
-        swiper = new Swiper('.swiper-container', {
-            direction: 'vertical',
-            slidesPerView: 1,
-            spaceBetween: 0,
-            speed: 500,
-            effect: 'fade',
-            fadeEffect: {
-                crossFade: true
-            },
-            allowTouchMove: false, // 禁止滑动，只能通过按钮翻页
-            autoHeight: false, // 禁用自动高度，可能导致问题
-            observer: true, // 监视元素变化
-            observeParents: true, // 监视父元素变化
-            watchOverflow: true, // 监视溢出
+    // 初始化Swiper
+    const swiper = new Swiper('.swiper-container', {
+        direction: 'vertical',
+        slidesPerView: 1,
+        spaceBetween: 0,
+        mousewheel: false,
+        keyboard: false,
+        allowTouchMove: false, // 禁止滑动，只能通过按钮翻页
+        speed: 800,
+        effect: 'fade',
+        fadeEffect: {
+            crossFade: true
+        },
+        touchRatio: 0, // 禁用触摸滑动
+        simulateTouch: false, // 禁用模拟触摸
+        preventInteractionOnTransition: true, // 过渡期间防止交互
+        autoHeight: true, // 自动高度
+        watchOverflow: true, // 监视溢出
         on: {
             init: function() {
                 // 初始化时触发动画
