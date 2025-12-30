@@ -21,25 +21,25 @@ document.addEventListener('DOMContentLoaded', function() {
             startAutoSlide();
         }, 2000);
     });
-    // 初始化Swiper - 使用更简单的配置以提高兼容性
-    try {
-        console.log('开始初始化Swiper');
-        // 使用全局变量存储Swiper实例
-        window.swiper = swiper = new Swiper('.swiper-container', {
-            direction: 'vertical',
-            slidesPerView: 1,
-            spaceBetween: 0,
-            speed: 500,
-            effect: 'fade',
-            fadeEffect: {
-                crossFade: true
-            },
-            allowTouchMove: false, // 禁止滑动，只能通过按钮翻页
-            autoHeight: false, // 禁用自动高度，可能导致问题
-            observer: true, // 监视元素变化
-            observeParents: true, // 监视父元素变化
-            watchOverflow: true, // 监视溢出
-            on: {
+    // 初始化Swiper
+    swiper = new Swiper('.swiper-container', {
+        direction: 'vertical',
+        slidesPerView: 1,
+        spaceBetween: 0,
+        mousewheel: false,
+        keyboard: false,
+        allowTouchMove: false, // 禁止滑动，只能通过按钮翻页
+        speed: 800,
+        effect: 'fade',
+        fadeEffect: {
+            crossFade: true
+        },
+        touchRatio: 0, // 禁用触摸滑动
+        simulateTouch: false, // 禁用模拟触摸
+        preventInteractionOnTransition: true, // 过渡期间防止交互
+        autoHeight: true, // 自动高度
+        watchOverflow: true, // 监视溢出
+        on: {
             init: function() {
                 // 初始化时触发动画
                 animateSlide(0);
@@ -61,31 +61,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    } catch (error) {
-        console.error('Swiper初始化失败:', error);
-        // 使用备用方案
-        console.log('使用备用方案显示第一页');
-        const slides = document.querySelectorAll('.swiper-slide');
-        if (slides && slides.length > 0) {
-            slides[0].style.display = 'flex';
-            animateSlide(0);
-        }
-    }
     
     // 绑定按钮事件 - 同时支持点击和触摸事件
     document.querySelectorAll('.next-btn').forEach(function(btn, index) {
         // 点击事件
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (window.swiper && typeof window.swiper.slideNext === 'function') {
-                window.swiper.slideNext();
-            } else if (swiper && typeof swiper.slideNext === 'function') {
-                swiper.slideNext();
-            } else {
-                // 备用方案：手动切换页面
-                const currentIndex = getCurrentSlideIndex();
-                manualSlideChange(currentIndex + 1);
-            }
+            swiper.slideNext();
             // 重置自动翻页定时器
             resetAutoSlideTimer();
         });
@@ -93,15 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 触摸事件
         btn.addEventListener('touchend', function(e) {
             e.preventDefault();
-            if (window.swiper && typeof window.swiper.slideNext === 'function') {
-                window.swiper.slideNext();
-            } else if (swiper && typeof swiper.slideNext === 'function') {
-                swiper.slideNext();
-            } else {
-                // 备用方案：手动切换页面
-                const currentIndex = getCurrentSlideIndex();
-                manualSlideChange(currentIndex + 1);
-            }
+            swiper.slideNext();
             // 重置自动翻页定时器
             resetAutoSlideTimer();
         });
@@ -113,14 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 点击事件
         restartBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            if (window.swiper && typeof window.swiper.slideTo === 'function') {
-                window.swiper.slideTo(0);
-            } else if (swiper && typeof swiper.slideTo === 'function') {
-                swiper.slideTo(0);
-            } else {
-                // 备用方案：手动切换页面
-                manualSlideChange(0);
-            }
+            swiper.slideTo(0);
             // 重置自动翻页定时器
             resetAutoSlideTimer();
         });
@@ -128,14 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 触摸事件
         restartBtn.addEventListener('touchend', function(e) {
             e.preventDefault();
-            if (window.swiper && typeof window.swiper.slideTo === 'function') {
-                window.swiper.slideTo(0);
-            } else if (swiper && typeof swiper.slideTo === 'function') {
-                swiper.slideTo(0);
-            } else {
-                // 备用方案：手动切换页面
-                manualSlideChange(0);
-            }
+            swiper.slideTo(0);
             // 重置自动翻页定时器
             resetAutoSlideTimer();
         });
@@ -171,9 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (currentIndex >= totalSlides - 1) {
                     // 如果是最后一页，返回第一页
-                    if (window.swiper && typeof window.swiper.slideTo === 'function') {
-                        window.swiper.slideTo(0);
-                    } else if (swiper && typeof swiper.slideTo === 'function') {
+                    if (swiper && typeof swiper.slideTo === 'function') {
                         swiper.slideTo(0);
                     } else {
                         // 备用方案：手动切换页面
@@ -181,9 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } else {
                     // 切换到下一页
-                    if (window.swiper && typeof window.swiper.slideNext === 'function') {
-                        window.swiper.slideNext();
-                    } else if (swiper && typeof swiper.slideNext === 'function') {
+                    if (swiper && typeof swiper.slideNext === 'function') {
                         swiper.slideNext();
                     } else {
                         // 备用方案：手动切换页面
@@ -227,30 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 更新页面计数器
         updatePageCounter(targetIndex + 1, slides.length);
-    }
-    
-    // 页面显示函数
-    function showPage(index) {
-        const slides = document.querySelectorAll('.swiper-slide');
-        if (!slides || index >= slides.length) return;
-        
-        // 隐藏所有幻灯片
-        slides.forEach(slide => slide.style.display = 'none');
-        
-        // 显示目标幻灯片
-        slides[index].style.display = 'flex';
-        
-        // 触发动画
-        animateSlide(index);
-        
-        // 更新页面计数器
-        updatePageCounter(index + 1, slides.length);
-        
-        // 触发自定义页面切换事件
-        const slideChangeEvent = new CustomEvent('slideChange', {
-            detail: { index: index }
-        });
-        document.dispatchEvent(slideChangeEvent);
     }
     
     // 停止自动翻页
