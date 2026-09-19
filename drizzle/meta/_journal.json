@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1786549773156,
+      "tag": "0000_lucky_luminals",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786552065210,
+      "tag": "0001_whole_doomsday",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786557875923,
+      "tag": "0002_elite_silhouette",
+      "breakpoints": true
+    }
+  ]
+}

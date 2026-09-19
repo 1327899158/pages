@@ -1,52 +1,124 @@
-# 微信年度报告
+# vinext-starter
 
-这是一个基于HTML、CSS和JavaScript的微信年度报告项目，适配于手机竖屏显示。报告展示了两位好友（JunJovec_和JunLovey_）在2025年的聊天数据统计和互动记录。
+A clean full-stack starter running on
+[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
+Drizzle support.
 
-## 功能特点
+## Prerequisites
 
-- 移动端竖屏设计，适合在手机上查看
-- 丰富的文字弹出动效
-- 可替换的页面背景
-- 点击按钮进行页面翻转
-- 数据可视化展示（图表、统计数据）
-- 聊天记录展示
+- Node.js `>=22.13.0`
 
-## 页面内容
+## Quick Start
 
-1. **欢迎页**：展示用户头像和昵称，以及欢迎文字
-2. **首次聊天信息**：展示首次聊天日期和2025年第一段对话
-3. **年度统计**：展示全年消息总量、字数、图片、语音等统计数据
-4. **消息对比**：对比两位用户发送的消息类型和数量
-5. **聊天时段分析**：分析一天中不同时段的聊天频率，并展示特殊时刻
-6. **聊天频次**：展示全年聊天频次和高峰期
-7. **最常用词**：展示两位用户最常用的词汇和示例
-8. **总结**：展示年度总结和评定
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-## 使用方法
+## News and X collection
 
-1. 确保`images`文件夹中包含以下图片：
-   - `img_1.jpg` - JunJovec_的头像
-   - `img_2.jpg` - JunLovey_的头像
-   - `img_3.jpg` - 最常用表情
-   - `img_4.jpg` - 聊天频次图
-   - `img_5.jpg` - 聊天时段折线图
-   - `img_6.jpg` - 词云图
+Public site: [AI PULSE on GitHub Pages](https://1327899158.github.io/pages/ai-pulse/)
 
-2. 在浏览器中打开`index.html`文件即可查看报告
+GitHub Pages provides the public entry point. The embedded application keeps
+its Cloudflare Worker and D1 backend because GitHub Pages cannot execute the
+collection APIs or persist daily archives. The complete application source is
+published in the `ai-pulse-source` branch of `1327899158/pages`.
 
-3. 点击每页底部的按钮可以翻页浏览
+The public news refresh combines RSS/Atom/API feeds with narrow public-list
+parsers for AIHOT, 优设 AI 情报, AI 智库导航, and AIHub. Only public titles,
+summaries, timestamps, images, and source links are archived in D1; article
+copyright remains with the source site.
 
-## 自定义
+The `X 热议` section has two read-only modes. It uses X API v2 Recent Search
+when `X_BEARER_TOKEN` is configured. Otherwise it combines the selected
+creators' public X profile pages (through Jina Reader) with AIHOT's anonymous
+public API as a resilience fallback. Only watchlisted creators are retained;
+each item keeps its original X link and machine-readable provenance. It does
+not call private/internal X endpoints and does not store browser cookies or a
+personal X login session. AIHOT is free for the documented non-commercial and
+internal uses; an external commercial product needs AIHOT's written permission.
 
-- 可以在`css/style.css`中修改页面背景和样式
-- 可以在`js/data.js`中修改聊天数据
-- 可以替换`images`文件夹中的图片来自定义头像和其他图片
+This starter does not use `wrangler.jsonc`.
 
-## 技术栈
+## Included Shape
 
-- HTML5
-- CSS3 (动画、弹性布局)
-- JavaScript
-- Chart.js (数据可视化)
-- Swiper.js (页面滑动)
-- Animate.css (动画效果)
+- edit site code under `app/`
+- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
+- `vite.config.ts` simulates declared bindings for local development
+- `db/schema.ts` starts intentionally empty
+- `examples/d1/` contains an optional D1 example surface
+- `drizzle.config.ts` supports local migration generation when needed
+
+## Workspace Auth Headers
+
+Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
+
+The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
+
+SIWC-authenticated workspace sites may also receive
+`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
+`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
+`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
+
+Treat the full name as optional and fall back to email when it is absent:
+
+```tsx
+import { headers } from "next/headers";
+
+export default async function Home() {
+  const requestHeaders = await headers();
+  const userId = requestHeaders.get("oai-authenticated-user-id");
+  const email = requestHeaders.get("oai-authenticated-user-email");
+  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
+  const fullName =
+    encodedFullName &&
+    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
+      "percent-encoded-utf-8"
+      ? decodeURIComponent(encodedFullName)
+      : null;
+
+  const displayName = fullName ?? email;
+  // ...
+}
+```
+
+## Optional Dispatch-Owned ChatGPT Sign-In
+
+Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
+optional or required ChatGPT sign-in:
+
+- Use `getChatGPTUser()` for optional signed-in UI.
+- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
+  anonymous visitors through Sign in with ChatGPT.
+- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
+  browser links or actions.
+- Pass a same-origin relative `returnTo` path for the destination after sign-in
+  or sign-out. The helper validates and safely encodes it.
+- Mark protected pages with `export const dynamic = "force-dynamic"` because
+  they depend on per-request identity headers.
+
+Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
+OAuth cookies, and identity header injection. Do not implement app routes for
+those reserved paths. Routes that do not import and call the helper remain
+anonymous-compatible.
+
+SIWC establishes identity only; it does not prove workspace membership. Use the
+Sites hosting platform's access policy controls for workspace-wide restrictions,
+or enforce explicit server-side membership or allowlist checks.
+
+Use SIWC for account pages, user-specific dashboards, saved records, and write
+actions tied to the current ChatGPT user. Leave public content anonymous.
+
+## Useful Commands
+
+- `npm run dev`: start local development
+- `npm run build`: verify the vinext build output
+- `npm test`: build the starter and verify its rendered loading skeleton
+- `npm run db:generate`: generate Drizzle migrations after schema changes
+
+## Learn More
+
+- [vinext Documentation](https://github.com/cloudflare/vinext)
+- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+
