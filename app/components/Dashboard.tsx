@@ -20,6 +20,7 @@ type XPost = {
 };
 type XCreator = { username: string; name: string; category: string; tier: string; focus: string; reason: string };
 type XLastRun = { archiveDate: string; finishedAt: string; creatorTotal: number; queryTotal: number; queryOk: number; fetched: number; inserted: number; status: string } | null;
+type TranslationItem = { id: string; text: string };
 
 const GROUPS = ["全部", "官方动态", "中文媒体", "国际媒体", "研究论文", "开发者社区", "行业通讯"];
 const TOPICS = ["全部", "模型动态", "产品应用", "前沿研究", "开源生态", "具身智能", "算力基建", "资本市场", "政策治理"];
@@ -58,6 +59,25 @@ function compactNumber(value: number) {
   return String(value || 0);
 }
 
+function isEnglishTitle(value: string) {
+  const latin = (value.match(/[A-Za-z]/g) ?? []).length;
+  const chinese = (value.match(/[\u3400-\u9fff]/g) ?? []).length;
+  return latin >= 8 && latin > chinese * 2;
+}
+
+async function translateDirect(items: TranslationItem[]) {
+  const settled = await Promise.allSettled(items.map(async (item) => {
+    const params = new URLSearchParams({ q: item.text, langpair: "en|zh-CN" });
+    const response = await fetch(`https://api.mymemory.translated.net/get?${params}`, { headers: { accept: "application/json" } });
+    if (!response.ok) throw new Error(`translation ${response.status}`);
+    const data = await response.json();
+    const translated = typeof data?.responseData?.translatedText === "string" ? data.responseData.translatedText.trim() : "";
+    if (!translated || Number(data?.responseStatus ?? 200) >= 400) throw new Error("empty translation");
+    return { id: item.id, translated: translated.replace(/&amp;/g, "&").replace(/&quot;/g, "\"").replace(/&#39;/g, "'") };
+  }));
+  return settled.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+}
+
 export default function Dashboard() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [dates, setDates] = useState<ArchiveDate[]>([]);
@@ -81,6 +101,9 @@ export default function Dashboard() {
   const [xCategory, setXCategory] = useState("全部");
   const [xCreator, setXCreator] = useState("");
   const [xLastRun, setXLastRun] = useState<XLastRun>(null);
+  const [titleTranslations, setTitleTranslations] = useState<Record<string, string>>({});
+  const [translationsVisible, setTranslationsVisible] = useState(true);
+  const [translating, setTranslating] = useState(false);
 
   const load = useCallback(async (date = selectedDate) => {
     setLoading(true);
@@ -141,6 +164,10 @@ export default function Dashboard() {
     return { sourceCount, cn, global: articles.length - cn, paper };
   }, [articles]);
 
+  const englishTitles = useMemo(() => filtered.filter((article) => isEnglishTitle(article.title)), [filtered]);
+  const translatedTitleCount = useMemo(() => englishTitles.filter((article) => titleTranslations[article.url]).length, [englishTitles, titleTranslations]);
+  const untranslatedTitleCount = englishTitles.length - translatedTitleCount;
+
   const filteredXPosts = useMemo(() => xPosts.filter((post) => {
     const categoryOk = xCategory === "全部" || post.creatorCategory === xCategory;
     const creatorOk = !xCreator || post.authorUsername.toLowerCase() === xCreator.toLowerCase();
@@ -183,6 +210,49 @@ export default function Dashboard() {
       setToast("X 获取失败，历史快照已保留，请稍后重试");
     } finally {
       setXRefreshing(false);
+    }
+  };
+
+  const translateEnglishTitles = async () => {
+    if (translating || !englishTitles.length) return;
+    if (!untranslatedTitleCount) {
+      setTranslationsVisible((visible) => !visible);
+      return;
+    }
+
+    const batch = englishTitles.filter((article) => !titleTranslations[article.url]).slice(0, 12)
+      .map((article) => ({ id: article.url, text: article.title.slice(0, 240) }));
+    setTranslating(true);
+    setTranslationsVisible(true);
+    try {
+      let results: Array<{ id: string; translated: string }> = [];
+      try {
+        const response = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ items: batch }),
+        });
+        if (!response.ok) throw new Error("translation proxy unavailable");
+        const data = await response.json();
+        results = (data.results ?? []).filter((item: { id?: unknown; translated?: unknown; ok?: unknown }) => item.ok && typeof item.id === "string" && typeof item.translated === "string");
+        const translatedIds = new Set(results.map((item) => item.id));
+        const missing = batch.filter((item) => !translatedIds.has(item.id));
+        if (missing.length) results = [...results, ...await translateDirect(missing)];
+      } catch {
+        results = await translateDirect(batch);
+      }
+
+      if (!results.length) throw new Error("no translations");
+      setTitleTranslations((current) => Object.fromEntries([
+        ...Object.entries(current),
+        ...results.map((item) => [item.id, item.translated]),
+      ]));
+      const failed = batch.length - results.length;
+      setToast(failed ? `已翻译 ${results.length} 条，另有 ${failed} 条暂时失败；可稍后继续` : `已翻译 ${results.length} 条英文标题，机器翻译仅供参考`);
+    } catch {
+      setToast("翻译服务暂时繁忙，英文原题不受影响，请稍后再试");
+    } finally {
+      setTranslating(false);
     }
   };
 
@@ -323,7 +393,12 @@ export default function Dashboard() {
         <div className="feed-column">
           <div className="section-heading">
             <div><span className="eyebrow">INTELLIGENCE FEED</span><h2>{group === "全部" ? "全域资讯流" : group}</h2></div>
-            <div className="results-count"><b>{filtered.length}</b> 条结果 <span /> 按时间排序</div>
+            <div className="heading-tools">
+              <button className="translate-toggle" onClick={translateEnglishTitles} disabled={translating || !englishTitles.length} title="仅翻译当前筛选结果中的英文标题；机器翻译仅供参考">
+                <span>译</span>{translating ? "正在翻译…" : !englishTitles.length ? "暂无英文标题" : !untranslatedTitleCount ? (translationsVisible ? "隐藏中文翻译" : "显示中文翻译") : translatedTitleCount ? `继续翻译（剩 ${untranslatedTitleCount}）` : "翻译英文标题"}
+              </button>
+              <div className="results-count"><b>{filtered.length}</b> 条结果 <span /> 按时间排序</div>
+            </div>
           </div>
 
           {loading ? <div className="loading-state"><span /><span /><span /><p>正在打开资讯档案…</p></div> : filtered.length === 0 ? (
@@ -337,6 +412,7 @@ export default function Dashboard() {
                     <div className="article-body">
                       <div className="article-meta"><span className="publisher"><i>{initials(article.sourceName)}</i>{article.sourceName}</span><span>{article.sourceGroup}</span><span>{relativeTime(article.publishedAt)}</span></div>
                       <h3>{article.title}</h3>
+                      {translationsVisible && titleTranslations[article.url] && <p className="article-translation"><span>中译</span>{titleTranslations[article.url]}</p>}
                       <p>{article.excerpt || "该来源未提供摘要，点击查看标题与采集快照。"}</p>
                       <div className="article-footer"><span className="topic-pill">{article.topic}</span>{article.author && <span>作者 {article.author}</span>}<span>快照 {formatTime(article.capturedAt)}</span></div>
                     </div>
@@ -362,6 +438,7 @@ export default function Dashboard() {
             <div className="snapshot-stamp"><span>CAPTURED SNAPSHOT</span><b>{preview.archiveDate}</b></div>
             <div className="snapshot-source"><i>{initials(preview.sourceName)}</i><div><b>{preview.sourceName}</b><span>{preview.sourceGroup} · {preview.region} · {formatTime(preview.publishedAt)}</span></div></div>
             <h2>{preview.title}</h2>
+            {translationsVisible && titleTranslations[preview.url] && <p className="snapshot-translation"><span>中文机器翻译</span>{titleTranslations[preview.url]}</p>}
             <p className="snapshot-excerpt">{preview.excerpt || "该来源没有在公开 Feed 中提供摘要。"}</p>
             <div className="snapshot-details"><div><span>主题</span><b>{preview.topic}</b></div><div><span>作者</span><b>{preview.author || "来源未注明"}</b></div><div><span>存档时间</span><b>{formatTime(preview.capturedAt)}</b></div></div>
             <div className="snapshot-notice"><b>快照说明</b><p>本页保存的是抓取当时的公开标题、摘要与元数据，用于历史检索和信息溯源。文章版权归原作者及来源网站所有。</p></div>
