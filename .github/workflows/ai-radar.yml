@@ -38,8 +38,8 @@ jobs:
         env:
           GOOGLE_TRANSLATE_API_KEY: ${{ secrets.GOOGLE_TRANSLATE_API_KEY }}
           DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
-          TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
-          TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+          TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID || secrets.SECRETID }}
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY || secrets.SECRETKEY }}
       - run: npm run build
         working-directory: ai-radar-src
       - name: Save latest snapshots
