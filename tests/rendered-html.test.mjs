@@ -21,6 +21,7 @@ test("server-renders the AI PULSE application shell", async () => {
   assert.match(html, /获取最新/);
   assert.match(html, /X 热议/);
   assert.match(html, /今天，AI 大V/);
+  assert.match(html, /机器翻译仅供参考/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/);
 });
 
