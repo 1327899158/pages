@@ -3,6 +3,16 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      translation_provider:
+        description: 'Manual translation provider (none updates news only)'
+        type: choice
+        default: none
+        options:
+          - none
+          - tencent
+          - google
+          - deepl
   schedule:
     - cron: '17,47 * * * *'
 permissions:
@@ -32,10 +42,12 @@ jobs:
         working-directory: ai-radar-src
       - run: npm run collect
         working-directory: ai-radar-src
-      - name: Translate titles with configured providers
+      - name: Translate titles with selected provider
+        if: github.event_name == 'workflow_dispatch' && inputs.translation_provider != 'none'
         run: node --experimental-strip-types scripts/translate-paid.mjs
         working-directory: ai-radar-src
         env:
+          TRANSLATION_PROVIDER: ${{ inputs.translation_provider }}
           GOOGLE_TRANSLATE_API_KEY: ${{ secrets.GOOGLE_TRANSLATE_API_KEY }}
           DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
           TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID || secrets.SECRETID }}

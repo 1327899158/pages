@@ -36,7 +36,9 @@ const providers={
   if(j.Response?.Error)throw Error('Tencent translation failed');return j.Response.TargetTextList;
  }}
 };
+if(!Object.hasOwn(providers,env.TRANSLATION_PROVIDER||''))throw Error('Choose one translation provider explicitly');
 for(const [id,provider] of Object.entries(providers)){
+ if(id!==env.TRANSLATION_PROVIDER)continue;
  const file=new URL(id+'.json',dir);let old={};
  try{old=JSON.parse(await fs.readFile(file,'utf8')).translations||{}}catch{}
  const translations={...old};let status=provider.configured?'ready':'unconfigured',used=0;

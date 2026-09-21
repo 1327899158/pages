@@ -8,7 +8,9 @@ export const isEnglishTitle=(s:string)=>/[a-zA-Z]{3}/.test(s)&&!/[\u3400-\u9fff]
 export function useTitleTranslation(titles:string[]){
  const [provider,setProvider]=useState('mymemory'),[snapshots,setSnapshots]=useState<Record<string,Snapshot>>({});
  const [enabled,setEnabled]=useState(false),[cache,setCache]=useState<Record<string,string>>({}),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[retry,setRetry]=useState(0);
- const key=JSON.stringify([...new Set(titles.filter(isEnglishTitle))]);
+ const [requestedTitles,setRequestedTitles]=useState<string[]>([]);
+ const key=JSON.stringify(requestedTitles);
+ const request=()=>{setRequestedTitles([...new Set(titles.filter(isEnglishTitle))]);setRetry(v=>v+1)};
  useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem(CACHE)||'{}');if(saved&&typeof saved==='object'&&!Array.isArray(saved))setCache(Object.fromEntries(Object.entries(saved).filter(([k,v])=>k.length<=240&&typeof v==='string'&&v.length<=1000)) as Record<string,string>)}catch{}setReady(true)},[]);
  useEffect(()=>{
   if(!enabled||!ready||provider!=='mymemory')return;
@@ -48,6 +50,6 @@ export function useTitleTranslation(titles:string[]){
   return()=>controller.abort();
  },[retry]);
  const snapshot=snapshots[provider],active=provider==='mymemory'?cache:snapshot?.translations||{};
- const paidMessage=!snapshot?'正在读取服务状态…':snapshot.status==='unconfigured'?'此服务尚未配置，请站点所有者配置后使用；当前保留原文。':snapshot.status==='unavailable'?'服务状态读取失败，请重试。':snapshot.status==='error'?'上次翻译任务失败，已有译文仍可查看，其余保留原文。':titles.some(t=>isEnglishTitle(t)&&!active[t])?'部分标题尚未生成此服务的译文，暂时保留原文。':'';
- return {provider,providers:translationProviders,choose:(id:string)=>{setProvider(id);setEnabled(true)},providerStatus:(id:string)=>id==='mymemory'?'':!snapshots[id]?'读取中':snapshots[id].status==='unconfigured'?'未配置':snapshots[id].status==='ready'?'已配置':'暂不可用',enabled,toggle:()=>setEnabled(v=>!v),busy:enabled&&(provider==='mymemory'?busy:!snapshot),message:enabled?(provider==='mymemory'?message:paidMessage):'',retry:()=>setRetry(v=>v+1),title:(s:string)=>enabled&&active[s]?active[s]:s,translated:(s:string)=>enabled&&!!active[s]};
+ const paidMessage=!snapshot?'正在读取服务状态…':snapshot.status==='unconfigured'?'此服务尚未配置，请站点所有者配置后使用；当前保留原文。':snapshot.status==='unavailable'?'服务状态读取失败，请重试。':snapshot.status==='error'?'上次翻译任务失败，已有译文仍可查看，其余保留原文。':titles.some(t=>isEnglishTitle(t)&&!active[t])?'部分标题尚无译文；请手动生成，完成后刷新译文。':'';
+ return {provider,providers:translationProviders,choose:(id:string)=>{setProvider(id);setEnabled(false);setMessage('')},providerStatus:(id:string)=>id==='mymemory'?'':!snapshots[id]?'读取中':snapshots[id].status==='unconfigured'?'未配置':snapshots[id].status==='ready'?'已配置':'暂不可用',enabled,toggle:()=>{if(!enabled)request();setEnabled(v=>!v)},busy:enabled&&(provider==='mymemory'?busy:!snapshot),message:enabled?(provider==='mymemory'?message:paidMessage):'',retry:request,title:(s:string)=>enabled&&active[s]?active[s]:s,translated:(s:string)=>enabled&&!!active[s]};
 }
