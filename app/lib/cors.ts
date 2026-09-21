@@ -1,6 +1,6 @@
 const GITHUB_PAGES_ORIGIN = "https://1327899158.github.io";
 
-export function githubPagesCors(request: Request) {
+export function githubPagesCors(request: Request): Record<string, string> {
   const origin = request.headers.get("origin");
   if (origin !== GITHUB_PAGES_ORIGIN) return {};
   return {
