@@ -30,6 +30,14 @@ jobs:
         working-directory: ai-radar-src
       - run: npm run collect
         working-directory: ai-radar-src
+      - name: Translate titles with configured providers
+        run: node --experimental-strip-types scripts/translate-paid.mjs
+        working-directory: ai-radar-src
+        env:
+          GOOGLE_TRANSLATE_API_KEY: ${{ secrets.GOOGLE_TRANSLATE_API_KEY }}
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+          TENCENT_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
+          TENCENT_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
       - run: npm run build
         working-directory: ai-radar-src
       - name: Save latest snapshots
