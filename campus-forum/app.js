@@ -24,7 +24,7 @@ async function load() {
   $('pagination').hidden = true;
   $('results').innerHTML = '<div class="empty">正在读取…</div>';
   const q = $('query').value.trim(), params = new URLSearchParams({site:$('site').value});
-  let route = '/api/hot';
+  let route = view === 'views' ? '/api/view-growth' : '/api/hot';
   if (view === 'posts') {
     route = q ? '/api/search' : '/api/threads';
     if (q) params.set('q', q);
@@ -34,9 +34,9 @@ async function load() {
     const data = await api(route + '?' + params);
     if (current !== version) return;
     rows = data.results;pages = data.pages || 1;
-    $('summary').textContent = view === 'hot' ? '仅限北京时间今天发布的帖子 · 按互动增长排序' : q ? `找到 ${rows.length} 条匹配${data.mode === 'bounded_substring' ? ' · 短词在最近 5,000 条内容内查找' : ''}` : `共 ${data.total} 个帖子`;
+    $('summary').textContent = view === 'views' ? '全版块 Top 10 · '+data.coverage : view === 'hot' ? '仅限北京时间今天发布的帖子 · 按互动增长排序' : q ? `找到 ${rows.length} 条匹配${data.mode === 'bounded_substring' ? ' · 短词在最近 5,000 条内容内查找' : ''}` : `共 ${data.total} 个帖子`;
     $('connection').textContent = '已连接电脑 · 更新于 ' + new Date().toLocaleTimeString('zh-CN');
-    $('results').innerHTML = rows.length ? rows.map((r,i) => `<article class="post"><button class="title" data-row="${i}">${view === 'hot' ? (i+1)+'. ' : ''}${esc(r.title)}</button><div class="meta">${esc(sites[r.platform])} · ${esc(r.board_id)}${r.field ? ' · '+esc({title:'标题命中',main:'正文命中',reply:'评论命中'}[r.field] || r.field) : ''}${r.classification?.category ? ' · '+esc(r.classification.category) : ''}${view === 'hot' ? ' · 热度 '+esc(r.hotness_score ?? '积累中') : ''}</div>${r.snippet ? `<p class="snippet">${esc(r.snippet)}</p>` : ''}</article>`).join('') : '<div class="empty">暂无符合条件的帖子</div>';
+    $('results').innerHTML = rows.length ? rows.map((r,i) => `<article class="post"><button class="title" data-row="${i}">${view !== 'posts' ? (i+1)+'. ' : ''}${esc(r.title)}</button><div class="meta">${esc(sites[r.platform])} · ${esc(r.board_id)}${r.field ? ' · '+esc({title:'标题命中',main:'正文命中',reply:'评论命中'}[r.field] || r.field) : ''}${r.classification?.category ? ' · '+esc(r.classification.category) : ''}${view === 'hot' ? ' · 热度 '+esc(r.hotness_score ?? '积累中') : ''}</div>${view === 'views' ? `<p class="snippet"><strong>${r.views_per_minute.toFixed(1)} 浏览/分钟</strong> · ${r.interval_seconds} 秒新增 ${r.delta} · 当前 ${r.views}</p>` : ''}${r.snippet ? `<p class="snippet">${esc(r.snippet)}</p>` : ''}</article>`).join('') : '<div class="empty">暂无符合条件的帖子</div>';
     $('pagination').hidden = view !== 'posts' || !!q;
     $('page').textContent = `${page} / ${pages}`;$('prev').disabled = page <= 1;$('next').disabled = page >= pages;
   } catch (e) {if (current === version) {$('results').innerHTML = `<div class="empty">${esc(errorText(e))}</div>`;$('connection').textContent = '连接未成功 · 可在连接设置中检查';}}
@@ -61,18 +61,23 @@ $('connect-form').onsubmit = async e => {
     if(key.length < 32) throw Error('请输入电脑生成的完整远程访问密钥');
     await api('/api/overview');
     sessionStorage.setItem('forum-endpoint', endpoint);sessionStorage.setItem('forum-key', key);
-    $('key').value = '';$('connect').close();page = 1;await load();
+    $('key').value = '';$('connect').close();page = 1;await load();await openNotificationTarget();
   } catch(e) {$('connect-error').textContent = errorText(e);}
 };
 $('logout').onclick = () => {++version;++readerVersion;sessionStorage.removeItem('forum-key');sessionStorage.removeItem('forum-endpoint');endpoint = '';key = '';rows = [];$('key').value = '';$('endpoint').value = '';$('results').replaceChildren();$('detail').replaceChildren();$('pagination').hidden = true;$('connection').textContent = '已清除连接';};
 $('search').onsubmit = e => {e.preventDefault();page = 1;setView('posts');};
-function setView(value) {view = value;page = 1;$('posts').classList.toggle('active',view === 'posts');$('hot').classList.toggle('active',view === 'hot');$('search').hidden = view === 'hot';$('category').disabled = view === 'hot' || !!$('query').value.trim();load();}
-$('posts').onclick = () => setView('posts');$('hot').onclick = () => setView('hot');
+function setView(value) {view = value;page = 1;$('posts').classList.toggle('active',view === 'posts');$('hot').classList.toggle('active',view === 'hot');$('views').classList.toggle('active',view === 'views');$('site').disabled = view === 'views';$('search').hidden = view !== 'posts';$('category').disabled = view !== 'posts' || !!$('query').value.trim();load();}
+$('posts').onclick = () => setView('posts');$('hot').onclick = () => setView('hot');$('views').onclick = () => setView('views');
 $('site').onchange = $('category').onchange = () => {page = 1;load();};
 $('query').oninput = () => {$('category').disabled = !!$('query').value.trim();};
 $('refresh').onclick = load;
 $('prev').onclick = () => {if(page > 1){page--;load();}};$('next').onclick = () => {if(page < pages){page++;load();}};
 $('results').onclick = e => {const button = e.target.closest('[data-row]');if(button) read(rows[Number(button.dataset.row)]);};
 $('close-reader').onclick = () => {++readerVersion;$('reader').close();};
-setInterval(() => {if(endpoint && key && !document.hidden && !$('reader').open && !$('connect').open && view === 'hot') load();},60000);
+setInterval(() => {if(endpoint && key && !document.hidden && !$('reader').open && !$('connect').open && view !== 'posts') load();},60000);
 load();
+
+const notificationTarget = new URLSearchParams(location.search);
+let pendingNotification = notificationTarget.has('thread_id');
+async function openNotificationTarget() { if(pendingNotification && endpoint && key) { pendingNotification = false; await read({platform:notificationTarget.get('platform'),board_id:notificationTarget.get('board_id'),thread_id:notificationTarget.get('thread_id')}); } }
+openNotificationTarget();

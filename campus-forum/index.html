@@ -1,17 +1,17 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#14283f"><title>校园论坛 · 随身阅读</title><link rel="stylesheet" href="./style.css"><script src="./app.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#14283f"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><title>校园论坛 · 随身阅读</title><link rel="stylesheet" href="./style.css"><script src="./app.js" defer></script><script src="./push.js" defer></script></head>
 <body>
 <header><a href="./" class="brand">双<span>校园论坛<small>随身阅读</small></span></a><button id="settings">连接设置</button></header>
 <main>
 <section class="intro"><small>FORUM EXPLORER</small><h1>把校园动态装进口袋</h1><p id="connection">连接家中电脑，查看最新采集的帖子。</p></section>
-<div class="tabs"><button id="posts" class="active">帖子检索</button><button id="hot">今日热榜</button></div>
+<div class="tabs"><button id="posts" class="active">帖子检索</button><button id="hot">今日热榜</button><button id="views">浏览增速</button></div>
 <form id="search"><input id="query" aria-label="搜索关键词" placeholder="搜索标题、正文、评论" maxlength="500"><button type="submit">搜索</button></form>
 <div class="filters"><select id="site" aria-label="论坛"><option value="">全部论坛</option><option value="qshp">清水河畔</option><option value="byr">北邮人论坛</option></select><select id="category" aria-label="主题"><option value="">全部主题</option><option>招聘</option><option>实习</option><option>二手</option></select><button id="refresh">刷新</button></div>
 <p id="summary" role="status">数据保存在电脑上，网页不会公开你的帖子库。</p>
 <section id="results" aria-live="polite"></section>
 <div id="pagination" hidden><button id="prev">上一页</button><span id="page"></span><button id="next">下一页</button></div>
-<footer>清水河畔 × 北邮人论坛<br>电脑持续采集 · 手机随时查看</footer>
+<details class="post"><summary>浏览突增提醒</summary><p id="push-status">超过 100 浏览/分钟时提醒。iPhone 请从主屏幕图标打开后开启。</p><button id="enable-push">开启提醒</button> <button id="test-push">发送测试</button> <button id="disable-push">关闭提醒</button></details><footer>清水河畔 × 北邮人论坛<br>电脑持续采集 · 手机随时查看</footer>
 </main>
 <dialog id="connect"><form id="connect-form"><h2>连接你的电脑</h2><p>填写电脑 HTTPS 隧道地址和远程访问密钥。电脑需保持开机、联网和采集服务运行。</p><label>数据接口地址<input id="endpoint" type="url" placeholder="https://你的接口域名" required autocomplete="url"></label><label>远程访问密钥<input id="key" type="password" minlength="32" required autocomplete="off"></label><p id="connect-error" role="alert"></p><button type="submit" class="primary">连接并读取</button><button type="button" id="close-settings">取消</button><button type="button" id="logout">清除连接</button><small>密钥仅保存在当前标签页会话中，不会上传 GitHub。请只连接你自己的接口地址。</small></form></dialog>
 <dialog id="reader"><div class="reader-top"><strong>帖子阅读</strong><button id="close-reader">关闭</button></div><article id="detail"></article></dialog>
